@@ -7,9 +7,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, session
 
-from generate_pdf import generate_pdf
-from generate_ppt import generate_ppt
-from generate_docx import generate_docx
+from generators.generate_pdf import generate_pdf
+from generators.generate_ppt import generate_ppt
+from generators.generate_docx import generate_docx
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates"))
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")

@@ -7,9 +7,9 @@ Generate reports in PDF, PPTX, or DOCX format from JSON data
 import os
 import sys
 import json
-from generate_pdf import generate_pdf
-from generate_ppt import generate_ppt
-from generate_docx import generate_docx
+from generators.generate_pdf import generate_pdf
+from generators.generate_ppt import generate_ppt
+from generators.generate_docx import generate_docx
 
 DATA_FILE = 'data.json'
 OUTPUT_DIR = 'output'
