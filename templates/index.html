@@ -10,7 +10,7 @@
     .container { max-width: 1000px; margin: 0 auto; }
     h1 { text-align: center; margin-bottom: 4px; font-size: 28px; color: #1b2a4a; }
     .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 14px; }
-    .tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
     .tab { padding: 10px 24px; border-radius: 8px 8px 0 0; border: none; font-size: 14px; font-weight: 600; cursor: pointer; background: #ddd; color: #666; }
     .tab.active { background: #1b2a4a; color: #fff; }
     .tab-content { display: none; }
@@ -38,12 +38,14 @@
     .btn-pptx { background: #c62828; color: #fff; }
     .btn-docx { background: #1b2a4a; color: #fff; }
     textarea { width: 100%; min-height: 280px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; resize: vertical; }
-    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    input[type="text"] { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; width: 100%; }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
     .form-row input, .form-row select { flex: 1; min-width: 140px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
     .form-row button { padding: 10px 24px; background: #1b2a4a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
     .badge { display: inline-block; background: #1b2a4a; color: #f5c518; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
-    .success { color: #2e7d32; background: #e8f5e9; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; display: none; }
-    .error { color: #c62828; background: #fce4ec; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; display: none; }
+    .msg { padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; display: none; }
+    .msg.success { display: block; color: #2e7d32; background: #e8f5e9; }
+    .msg.error { display: block; color: #c62828; background: #fce4ec; }
     .sample-btn { background: #f5c518; color: #1b2a4a; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .meta-item { background: #f8f9fa; padding: 12px 16px; border-radius: 8px; }
@@ -55,28 +57,53 @@
 <body>
   <div class="container">
     <h1>&#128202; Report Generator</h1>
-    <p class="subtitle">Generate PDF &bull; PPTX &bull; DOCX from any data</p>
+    <p class="subtitle">Generate PDF &bull; PPTX &bull; DOCX from text or data</p>
 
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('custom')">&#9998; Custom Data</button>
-      <button class="tab" onclick="switchTab('sample')">&#128196; Sample QA Data</button>
+      <button class="tab active" onclick="switchTab('text')">&#128221; Text</button>
+      <button class="tab" onclick="switchTab('json')">&#123;&#125; JSON</button>
+      <button class="tab" onclick="switchTab('sample')">&#128196; Sample QA</button>
     </div>
 
-    <!-- TAB 1: Custom JSON -->
-    <div id="tab-custom" class="tab-content active">
+    <!-- TAB 1: Text -->
+    <div id="tab-text" class="tab-content active">
       <div class="card">
-        <h2>&#128221; Paste Your JSON</h2>
-        <p style="font-size:13px;color:#888;margin-bottom:10px">Paste any JSON data with the structure below, then download your report.</p>
+        <h2>&#128221; Paste Your Text</h2>
+        <p style="font-size:13px;color:#888;margin-bottom:10px">Paste any text, notes, or document content. Add a title and download as PDF, PPTX, or DOCX.</p>
+        <div style="margin-bottom:10px">
+          <input type="text" id="textTitle" placeholder="Document title" value="My Document">
+        </div>
+        <textarea id="textInput" placeholder="Paste your text here...&#10;&#10;This could be notes, reports, articles, or any content you want to save as a document.">This is a sample document.
+
+You can replace this text with any content you like.
+
+Features:
+- Paste any text
+- Add a custom title
+- Download as PDF, PPTX, or DOCX
+
+Perfect for daily reports, notes, and documentation.</textarea>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+          <span style="flex:1"></span>
+          <button class="btn btn-pdf" onclick="downloadText('pdf')">&#128196; PDF</button>
+          <button class="btn btn-pptx" onclick="downloadText('pptx')">&#128202; PPTX</button>
+          <button class="btn btn-docx" onclick="downloadText('docx')">&#128221; DOCX</button>
+        </div>
+        <div id="textMsg" class="msg"></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Custom JSON -->
+    <div id="tab-json" class="tab-content">
+      <div class="card">
+        <h2>&#123;&#125; Paste Your JSON</h2>
+        <p style="font-size:13px;color:#888;margin-bottom:10px">Paste structured test data as JSON, then download the report.</p>
         <textarea id="jsonInput">{
   "title": "My Report",
   "project": "My Project",
   "tester": "Your Name",
   "date": "2026-07-17",
-  "summary": {
-    "total": 3,
-    "passed": 2,
-    "failed": 1
-  },
+  "summary": { "total": 3, "passed": 2, "failed": 1 },
   "tests": [
     { "id": "TC_001", "scenario": "Test case one", "status": "Pass" },
     { "id": "TC_002", "scenario": "Test case two", "status": "Pass" },
@@ -84,18 +111,17 @@
   ]
 }</textarea>
         <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
-          <button class="sample-btn" onclick="loadSample()">&#128196; Load Sample</button>
+          <button class="sample-btn" onclick="loadSampleJSON()">&#128196; Load from QA Data</button>
           <span style="flex:1"></span>
-          <button class="btn btn-pdf" onclick="downloadCustom('pdf')">&#128196; PDF</button>
-          <button class="btn btn-pptx" onclick="downloadCustom('pptx')">&#128202; PPTX</button>
-          <button class="btn btn-docx" onclick="downloadCustom('docx')">&#128221; DOCX</button>
+          <button class="btn btn-pdf" onclick="downloadJSON('pdf')">&#128196; PDF</button>
+          <button class="btn btn-pptx" onclick="downloadJSON('pptx')">&#128202; PPTX</button>
+          <button class="btn btn-docx" onclick="downloadJSON('docx')">&#128221; DOCX</button>
         </div>
-        <div id="customSuccess" class="success"></div>
-        <div id="customError" class="error"></div>
+        <div id="jsonMsg" class="msg"></div>
       </div>
     </div>
 
-    <!-- TAB 2: Sample QA Data -->
+    <!-- TAB 3: Sample QA Data -->
     <div id="tab-sample" class="tab-content">
       {% set rate = (data.summary.passed / data.summary.total * 100) if data.summary.total > 0 else 0 %}
       <div class="card">
@@ -107,7 +133,6 @@
         </div>
         <p style="text-align:center;margin-top:12px;font-size:15px;color:#666">Pass Rate: <strong>{{ "%.1f"|format(rate) }}%</strong></p>
       </div>
-
       <div class="card">
         <h2>Details</h2>
         <div class="meta-grid" style="margin-top:12px">
@@ -116,7 +141,6 @@
           <div class="meta-item"><div class="label">Date</div><div class="value">{{ data.date }}</div></div>
         </div>
       </div>
-
       <div class="card">
         <h2>Test Cases <span class="badge">{{ data.tests|length }}</span></h2>
         <table><thead><tr><th>ID</th><th>Scenario</th><th>Status</th></tr></thead><tbody>
@@ -125,7 +149,6 @@
           {% endfor %}
         </tbody></table>
       </div>
-
       <div class="card">
         <h2>&#128230; Download</h2>
         <div class="actions" style="margin-top:16px">
@@ -134,7 +157,6 @@
           <a href="/generate/docx" class="btn btn-docx">&#128221; DOCX</a>
         </div>
       </div>
-
       <div class="card">
         <h2>&#10133; Add Test Case</h2>
         <form action="/add" method="POST" class="form-row" style="margin-top:12px">
@@ -156,50 +178,62 @@
       document.getElementById(`tab-${name}`).classList.add('active');
     }
 
-    async function loadSample() {
+    function showMsg(id, type, text) {
+      const el = document.getElementById(id);
+      el.className = 'msg ' + type;
+      el.textContent = text;
+      setTimeout(() => { el.className = 'msg'; }, 5000);
+    }
+
+    // --- Text ---
+    async function downloadText(fmt) {
+      const text = document.getElementById('textInput').value;
+      const title = document.getElementById('textTitle').value || 'Document';
+      try {
+        const res = await fetch(`/generate-text/${fmt}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, title })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `document.${fmt}`;
+        a.click();
+        showMsg('textMsg', 'success', `\u2705 ${fmt.toUpperCase()} downloaded!`);
+      } catch (e) {
+        showMsg('textMsg', 'error', '\u274c ' + e.message);
+      }
+    }
+
+    // --- JSON ---
+    async function loadSampleJSON() {
       const res = await fetch('/data');
       const data = await res.json();
       document.getElementById('jsonInput').value = JSON.stringify(data, null, 2);
     }
 
-    async function downloadCustom(fmt) {
+    async function downloadJSON(fmt) {
       const el = document.getElementById('jsonInput');
-      const success = document.getElementById('customSuccess');
-      const error = document.getElementById('customError');
-      success.style.display = 'none';
-      error.style.display = 'none';
-
       let data;
-      try {
-        data = JSON.parse(el.value);
-      } catch (e) {
-        error.textContent = 'Invalid JSON: ' + e.message;
-        error.style.display = 'block';
-        return;
-      }
-
+      try { data = JSON.parse(el.value); }
+      catch (e) { showMsg('jsonMsg', 'error', 'Invalid JSON: ' + e.message); return; }
       try {
         const res = await fetch(`/generate-custom/${fmt}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Unknown error');
-        }
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error); }
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = `report.${fmt}`;
         a.click();
-        URL.revokeObjectURL(url);
-        success.textContent = `\u2705 ${fmt.toUpperCase()} downloaded!`;
-        success.style.display = 'block';
+        showMsg('jsonMsg', 'success', `\u2705 ${fmt.toUpperCase()} downloaded!`);
       } catch (e) {
-        error.textContent = '\u274c Error: ' + e.message;
-        error.style.display = 'block';
+        showMsg('jsonMsg', 'error', '\u274c ' + e.message);
       }
     }
   </script>

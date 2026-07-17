@@ -11,6 +11,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from generators.generate_pdf import generate_pdf
 from generators.generate_ppt import generate_ppt
 from generators.generate_docx import generate_docx
+from generators.generate_text import generate_text_pdf, generate_text_pptx, generate_text_docx
 
 app = Flask(__name__, template_folder=os.path.join(ROOT, "templates"))
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
@@ -112,6 +113,34 @@ def generate_custom(fmt):
 
         buf.seek(0)
         return send_file(buf, as_attachment=True, download_name=f"report.{fmt}")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/generate-text/<fmt>", methods=["POST"])
+def generate_text(fmt):
+    try:
+        data = request.get_json()
+        if not data or "text" not in data:
+            return jsonify({"error": "No text provided"}), 400
+
+        text = data["text"]
+        title = data.get("title", "Document")
+
+        if fmt == "pdf":
+            out = io.BytesIO()
+            generate_text_pdf(text, out, title)
+        elif fmt == "pptx":
+            out = io.BytesIO()
+            generate_text_pptx(text, out, title)
+        elif fmt == "docx":
+            out = io.BytesIO()
+            generate_text_docx(text, out, title)
+        else:
+            return jsonify({"error": "Invalid format"}), 400
+
+        out.seek(0)
+        return send_file(out, as_attachment=True, download_name=f"document.{fmt}")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
