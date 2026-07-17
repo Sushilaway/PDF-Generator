@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Test Report Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f4f8; color: #1b2a4a; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 8px; font-size: 28px; color: #1b2a4a; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 14px; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 18px; margin-bottom: 16px; color: #1b2a4a; border-bottom: 2px solid #f5c518; padding-bottom: 8px; display: inline-block; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .meta-item { background: #f8f9fa; padding: 12px 16px; border-radius: 8px; }
+    .meta-item .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+    .meta-item .value { font-size: 16px; font-weight: 600; margin-top: 4px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .summary-box { padding: 20px; border-radius: 10px; text-align: center; }
+    .summary-box.total { background: #e8f0fe; color: #1b2a4a; }
+    .summary-box.passed { background: #e8f5e9; color: #2e7d32; }
+    .summary-box.failed { background: #fce4ec; color: #c62828; }
+    .summary-box .num { font-size: 32px; font-weight: 700; }
+    .summary-box .lbl { font-size: 13px; margin-top: 4px; opacity: 0.8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #1b2a4a; color: #fff; padding: 10px 12px; text-align: left; font-size: 13px; }
+    td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+    tr:nth-child(even) td { background: #f8f9fa; }
+    .status { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status.pass { background: #e8f5e9; color: #2e7d32; }
+    .status.fail { background: #fce4ec; color: #c62828; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { padding: 12px 28px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.1s, box-shadow 0.1s; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-pdf { background: #d32f2f; color: #fff; }
+    .btn-pptx { background: #c62828; color: #fff; }
+    .btn-docx { background: #1b2a4a; color: #fff; }
+    .btn-all { background: #f5c518; color: #1b2a4a; }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .form-row input, .form-row select { flex: 1; min-width: 140px; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .form-row button { padding: 10px 24px; background: #1b2a4a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .badge { display: inline-block; background: #1b2a4a; color: #f5c518; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-left: 8px; }
+    @media (max-width: 600px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .meta-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>&#128202; QA Test Report Generator</h1>
+    <p class="subtitle">{{ data.project }} &mdash; {{ data.tester }} &mdash; {{ data.date }}</p>
+
+    <!-- Summary -->
+    <div class="card">
+      <h2>Executive Summary</h2>
+      <div class="summary-grid" style="margin-top:12px">
+        <div class="summary-box total">
+          <div class="num">{{ data.summary.total }}</div>
+          <div class="lbl">Total Tests</div>
+        </div>
+        <div class="summary-box passed">
+          <div class="num">{{ data.summary.passed }}</div>
+          <div class="lbl">Passed</div>
+        </div>
+        <div class="summary-box failed">
+          <div class="num">{{ data.summary.failed }}</div>
+          <div class="lbl">Failed</div>
+        </div>
+      </div>
+      {% set rate = (data.summary.passed / data.summary.total * 100) if data.summary.total > 0 else 0 %}
+      <p style="text-align:center;margin-top:12px;font-size:15px;color:#666">
+        Pass Rate: <strong>{{ "%.1f"|format(rate) }}%</strong>
+      </p>
+    </div>
+
+    <!-- Metadata -->
+    <div class="card">
+      <h2>Details</h2>
+      <div class="meta-grid" style="margin-top:12px">
+        <div class="meta-item"><div class="label">Project</div><div class="value">{{ data.project }}</div></div>
+        <div class="meta-item"><div class="label">Tester</div><div class="value">{{ data.tester }}</div></div>
+        <div class="meta-item"><div class="label">Date</div><div class="value">{{ data.date }}</div></div>
+      </div>
+    </div>
+
+    <!-- Test Cases -->
+    <div class="card">
+      <h2>Test Cases <span class="badge">{{ data.tests|length }}</span></h2>
+      <table>
+        <thead><tr><th>ID</th><th>Scenario</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for t in data.tests %}
+          <tr>
+            <td><strong>{{ t.id }}</strong></td>
+            <td>{{ t.scenario }}</td>
+            <td><span class="status {{ t.status.lower() }}">{{ t.status }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Generate -->
+    <div class="card">
+      <h2>Generate Reports</h2>
+      <div class="actions" style="margin-top:16px">
+        <a href="/generate/pdf" class="btn btn-pdf">&#128196; Download PDF</a>
+        <a href="/generate/pptx" class="btn btn-pptx">&#128202; Download PPTX</a>
+        <a href="/generate/docx" class="btn btn-docx">&#128221; Download DOCX</a>
+      </div>
+    </div>
+
+    <!-- Add Test -->
+    <div class="card">
+      <h2>&#10133; Add New Test Case</h2>
+      <form action="/add" method="POST" class="form-row" style="margin-top:12px">
+        <input type="text" name="test_id" placeholder="Test ID (e.g. AUTH_003)" required>
+        <input type="text" name="scenario" placeholder="Scenario" required>
+        <select name="status" required>
+          <option value="">Status</option>
+          <option value="Pass">Pass</option>
+          <option value="Fail">Fail</option>
+        </select>
+        <button type="submit">&#10133; Add</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
