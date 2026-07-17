@@ -3,7 +3,8 @@ import os
 import io
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT)
 
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, session
 
@@ -11,10 +12,10 @@ from generators.generate_pdf import generate_pdf
 from generators.generate_ppt import generate_ppt
 from generators.generate_docx import generate_docx
 
-app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates"))
+app = Flask(__name__, template_folder=os.path.join(ROOT, "templates"))
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 
-DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data.json")
+DATA_FILE = os.path.join(ROOT, "data.json")
 
 
 def load_base_data():
