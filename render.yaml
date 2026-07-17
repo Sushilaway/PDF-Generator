@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: pdf-generator
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn api.index:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
