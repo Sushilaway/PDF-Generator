@@ -79,6 +79,43 @@ def generate(fmt):
     return send_file(buf, as_attachment=True, download_name=f"report.{fmt}")
 
 
+@app.route("/generate-custom/<fmt>", methods=["POST"])
+def generate_custom(fmt):
+    try:
+        body = request.get_json()
+        if not body:
+            return jsonify({"error": "No JSON data provided"}), 400
+
+        required = ["title", "tests"]
+        for field in required:
+            if field not in body:
+                return jsonify({"error": f"Missing required field: {field}"}), 400
+
+        body.setdefault("project", "Custom Project")
+        body.setdefault("tester", "N/A")
+        body.setdefault("date", "N/A")
+        body.setdefault("summary", {})
+        s = body["summary"]
+        s.setdefault("total", len(body["tests"]))
+        s.setdefault("passed", sum(1 for t in body["tests"] if t.get("status", "").lower() == "pass"))
+        s.setdefault("failed", sum(1 for t in body["tests"] if t.get("status", "").lower() == "fail"))
+
+        buf = io.BytesIO()
+        if fmt == "pdf":
+            generate_pdf(body, buf)
+        elif fmt == "pptx":
+            generate_ppt(body, buf)
+        elif fmt == "docx":
+            generate_docx(body, buf)
+        else:
+            return jsonify({"error": "Invalid format"}), 400
+
+        buf.seek(0)
+        return send_file(buf, as_attachment=True, download_name=f"report.{fmt}")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/data")
 def get_data_route():
     return jsonify(get_data())
