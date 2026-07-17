@@ -5,56 +5,65 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, session
 
 from generate_pdf import generate_pdf
 from generate_ppt import generate_ppt
 from generate_docx import generate_docx
 
 app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates"))
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
 
 DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data.json")
 
 
-def load_data():
+def load_base_data():
     with open(DATA_FILE, "r") as f:
         return json.load(f)
 
 
-def save_data(data):
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+def get_data():
+    data = load_base_data()
+    extra = session.get("extra_tests", [])
+    for t in extra:
+        data["tests"].append(t)
+        data["summary"]["total"] += 1
+        if t["status"].lower() == "pass":
+            data["summary"]["passed"] += 1
+        else:
+            data["summary"]["failed"] += 1
+    return data
 
 
 @app.route("/")
 def index():
-    data = load_data()
+    data = get_data()
     return render_template("index.html", data=data)
 
 
 @app.route("/add", methods=["POST"])
 def add_test():
-    data = load_data()
     test_id = request.form["test_id"]
     scenario = request.form["scenario"]
     status = request.form["status"]
 
-    new_test = {"id": test_id, "scenario": scenario, "status": status}
-    data["tests"].append(new_test)
-    data["summary"]["total"] += 1
-    if status.lower() == "pass":
-        data["summary"]["passed"] += 1
-    else:
-        data["summary"]["failed"] += 1
-    save_data(data)
+    extra = session.get("extra_tests", [])
+    extra.append({"id": test_id, "scenario": scenario, "status": status})
+    session["extra_tests"] = extra
+
+    return redirect(url_for("index"))
+
+
+@app.route("/clear")
+def clear():
+    session.pop("extra_tests", None)
     return redirect(url_for("index"))
 
 
 @app.route("/generate/<fmt>")
 def generate(fmt):
-    data = load_data()
+    data = get_data()
     buf = io.BytesIO()
-    filename = f"report.{fmt}"
 
     if fmt == "pdf":
         generate_pdf(data, buf)
@@ -66,10 +75,9 @@ def generate(fmt):
         return "Invalid format", 400
 
     buf.seek(0)
-    return send_file(buf, as_attachment=True, download_name=filename)
+    return send_file(buf, as_attachment=True, download_name=f"report.{fmt}")
 
 
 @app.route("/data")
-def get_data():
-    data = load_data()
-    return jsonify(data)
+def get_data_route():
+    return jsonify(get_data())
