@@ -1,0 +1,23 @@
+{
+  "title": "QA Test Report",
+  "project": "Away Tech",
+  "tester": "Sushil Bastola",
+  "date": "2026-07-16",
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1
+  },
+  "tests": [
+    {
+      "id": "AUTH_001",
+      "scenario": "Login Page",
+      "status": "Pass"
+    },
+    {
+      "id": "AUTH_002",
+      "scenario": "Forgot Password",
+      "status": "Fail"
+    }
+  ]
+}
