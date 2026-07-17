@@ -10,24 +10,36 @@ from datetime import datetime
 
 def generate_text_pdf(text, output_path, title="Document"):
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_font("Arial", "B", 18)
+    pdf.set_font("Helvetica", "B", 18)
     pdf.cell(0, 12, title, 0, 1, "C")
-    pdf.set_font("Arial", "I", 10)
+    pdf.set_font("Helvetica", "I", 10)
     pdf.cell(0, 6, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1, "C")
     pdf.ln(5)
-    pdf.set_font("Arial", "", 11)
+    pdf.set_font("Helvetica", "", 10)
 
     for line in text.split("\n"):
-        line = line.strip()
-        if not line:
-            pdf.ln(3)
+        if not line.strip():
+            pdf.ln(4)
             continue
+
+        pdf.set_x(10)
+        safe = line.encode("latin-1", "replace").decode("latin-1")
+        w = pdf.w - pdf.l_margin - pdf.r_margin
+
         try:
-            pdf.multi_cell(0, 6, line)
+            if pdf.get_string_width(safe) > w:
+                pdf.multi_cell(w=w, h=5, text=safe)
+            else:
+                pdf.cell(w, 5, safe, 0, 1)
         except Exception:
-            safe = line.encode("latin-1", "replace").decode("latin-1")
-            pdf.multi_cell(0, 6, safe)
+            pdf.set_font("Helvetica", "", 8)
+            try:
+                pdf.multi_cell(w=w, h=4, text=safe[:500])
+            except Exception:
+                pass
+            pdf.set_font("Helvetica", "", 10)
 
     pdf.output(output_path)
 
